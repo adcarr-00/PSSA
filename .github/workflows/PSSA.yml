@@ -16,20 +16,17 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v3
 
-    - name: PS Setup
-      uses: actions/setup-pwsh@v2
-
     - name: Install PSSA
       run: |
-        Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser
-        Import-Module PSScriptAnalyzer
+        pwsh -Command "Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser"
+        pwsh -Command "Import-Module PSScriptAnalyzer"
 
     - name: Run PSSA
       run: |
-        Get-ChildItem -Path . -Recurse -Filter *.ps1 | ForEach-Object {
+        pwsh -Command "Get-ChildItem -Path . -Recurse -Filter *.ps1 | ForEach-Object {
           Write-Host "Analysing $($_.FullName)"
           Invoke-ScriptAnalyzer -Path $_.FullName -Recurse -Severity Error,Warning
-        }
+        }"
     
         
     
