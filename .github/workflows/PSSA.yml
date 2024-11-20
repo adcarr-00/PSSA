@@ -1,14 +1,10 @@
 name: PowerShell Script Analysis
 
 on:
-  pull_request:
-    paths:
-      - '**/*.ps1'  # Only trigger on PowerShell script changes
   push:
     branches:
       - main
-    paths:
-      - '**/*.ps1'  # Only trigger on PowerShell script changes
+  pull_request:
 
 jobs:
   psscriptanalyzer:
@@ -28,15 +24,19 @@ jobs:
       - name: Copy Custom Rule for Vulnerable Ports
         run: |
           # Copy the custom rule from the root of the repository
-          New-Item -Path "$env:USERPROFILE\Documents\PowerShell\Modules\VulnerablePortsRule.psm1" -ItemType File -Force
-          Set-Content -Path "$env:USERPROFILE\Documents\PowerShell\Modules\VulnerablePortsRule.psm1" -Value "$(cat VulnerablePortsRule.psm1)"
+          New-Item -CustomRulePath "$env:USERPROFILE\Documents\PowerShell\Modules\VulnerablePortsRule.psm1" -ItemType File -Force
+          Set-Content -CustomRulePath "$env:USERPROFILE\Documents\PowerShell\Modules\VulnerablePortsRule.psm1" -Value "$(cat VulnerablePortsRule.psm1)"
 
       - name: Run PSScriptAnalyzer
         run: |
           # Run PSScriptAnalyzer on all .ps1 files with custom rules
           Import-Module PSScriptAnalyzer
           Import-Module "$env:USERPROFILE\Documents\PowerShell\Modules\VulnerablePortsRule.psm1"
-          Invoke-ScriptAnalyzer -Path . -CustomRulePath "$env:USERPROFILE\Documents\PowerShell\Modules\VulnerablePortsRule.psm1" | Out-File -FilePath psscriptanalyzer-results.txt
+          Get-ChildeItem -Path . -Recurse -Filter *.ps1 | ForEach-Object {
+            Write-Host "Analysing $($_.FullName)"
+            Invoke-ScriptAnalyzer -Path . -CustomRulePath "$env:USERPROFILE\Documents\PowerShell\Modules\VulnerablePortsRule.psm1" | Out-File -FilePath psscriptanalyzer-results.txt
+          }
+        
 
       - name: Upload results as artifact
         uses: actions/upload-artifact@v3
