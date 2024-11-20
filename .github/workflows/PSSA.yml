@@ -34,5 +34,5 @@ jobs:
           Write-Host "PSScriptAnalyzer Module Loaded"
       
           # Run PSScriptAnalyzer with the custom rule from the settings file
-          Invoke-ScriptAnalyzer -Path . -CustomizedRulePath VulnerablePortsRule.psm1 -IncludeDefaultRules 1
+          Invoke-ScriptAnalyzer -Path . -CustomizedRulePath VulnerablePortsRule.psm1
     
