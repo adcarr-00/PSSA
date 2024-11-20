@@ -9,8 +9,15 @@ on:
 jobs:
   psscriptanalyzer:
     runs-on: windows-latest  # Use a Windows runner to execute PowerShell
+  
 
     steps:
+      - name: Check PowerShell version
+        shell: pwsh
+        run: |
+          # Output the PowerShell version
+          $PSVersionTable.PSVersion 
+          
       - name: Checkout code
         uses: actions/checkout@v3
 
