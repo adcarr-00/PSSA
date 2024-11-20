@@ -21,14 +21,13 @@ function Test-VulnerablePorts {
             # Look for cmdlets that specify vulnerable ports
             foreach ($port in $vulnerablePorts) {
                 if ($scriptText -match "\b$port\b") {
-                    return @(
-                        @{
-                            RuleName    = 'Vulnerable Port Detection'
-                            Severity    = 'Warning'
-                            Message     = "Vulnerable port $port is being opened or configured."
-                            ScriptBlock = $scriptText
-                        }
-                    )
+                    # Return violations as structured objects
+                    return [PSCustomObject]@{
+                        RuleName    = 'Vulnerable Port Detection'
+                        Severity    = 'Warning'
+                        Message     = "Vulnerable port $port is being opened or configured."
+                        ScriptBlock = $scriptText
+                    }
                 }
             }
         }
@@ -36,22 +35,5 @@ function Test-VulnerablePorts {
     return $null
 }
 
-# Register the custom rule in PSScriptAnalyzer
-function Invoke-VulnerablePortsRule {
-    $ruleName = 'VulnerablePortsRule'
-    
-    # Load the script content to analyze
-    $scriptContent = Get-Content -Path $PSCommandPath -Raw
-
-    $violations = Test-VulnerablePorts -scriptText $scriptContent
-
-    # Report violations (if any)
-    if ($violations) {
-        foreach ($violation in $violations) {
-            Write-Host "$($violation.RuleName) - $($violation.Severity): $($violation.Message)"
-        }
-    }
-    else {
-        Write-Host "No violations detected."
-    }
-}
+# Export the custom rule function to make it available for PSScriptAnalyzer
+Export-ModuleMember -Function Test-VulnerablePorts
