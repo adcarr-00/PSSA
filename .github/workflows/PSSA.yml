@@ -32,7 +32,7 @@ jobs:
           # Run PSScriptAnalyzer on all .ps1 files with custom rules
           Import-Module PSScriptAnalyzer
           Import-Module "$env:USERPROFILE\Documents\PowerShell\Modules\VulnerablePortsRule.psm1"
-          Get-ChildeItem -Path . -Recurse -Filter *.ps1 | ForEach-Object {
+          Get-ChildItem -Path . -Recurse -Filter *.ps1 | ForEach-Object {
             Write-Host "Analysing $($_.FullName)"
             Invoke-ScriptAnalyzer -Path . -Path "$env:USERPROFILE\Documents\PowerShell\Modules\VulnerablePortsRule.psm1" | Out-File -FilePath psscriptanalyzer-results.txt
           }
