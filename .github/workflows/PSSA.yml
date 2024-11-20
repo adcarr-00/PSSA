@@ -41,7 +41,7 @@ jobs:
             Write-Host "Analysing $($_.FullName)"
             try {
               # Run the script analyzer with the custom rule and capture the output
-              $analysisResult = Invoke-ScriptAnalyzer -Path $_.FullName -CustomRule $customRulePath
+              $analysisResult = Invoke-ScriptAnalyzer -Path $_.FullName
               $analysisResult | Out-File -FilePath psscriptanalyzer-results.txt -Append
             } catch {
               Write-Error "Error analyzing $($_.FullName): $_"
