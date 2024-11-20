@@ -34,7 +34,7 @@ jobs:
           Import-Module "$env:USERPROFILE\Documents\PowerShell\Modules\VulnerablePortsRule.psm1"
           Get-ChildItem -Path . -Recurse -Filter *.ps1 | ForEach-Object {
             Write-Host "Analysing $($_.FullName)"
-            Invoke-ScriptAnalyzer -Path . -Path "$env:USERPROFILE\Documents\PowerShell\Modules\VulnerablePortsRule.psm1" | Out-File -FilePath psscriptanalyzer-results.txt
+            Invoke-ScriptAnalyzer -Path $_.FullName -CustomRule "$env:USERPROFILE\Documents\PowerShell\Modules\VulnerablePortsRule.psm1" | Out-File -FilePath psscriptanalyzer-results.txt
           }
         
 
