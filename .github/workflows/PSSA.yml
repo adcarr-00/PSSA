@@ -13,21 +13,21 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-        
-      - name: Set up PowerShell
-        uses: actions/setup-powershell@v2
 
       - name: Install PSScriptAnalyzer
+        shell: pwsh
         run: |
           Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser
 
       - name: Copy Custom Rule for Vulnerable Ports
+        shell: pwsh
         run: |
           # Copy the custom rule from the root of the repository
           New-Item -CustomRulePath "$env:USERPROFILE\Documents\PowerShell\Modules\VulnerablePortsRule.psm1" -ItemType File -Force
           Set-Content -CustomRulePath "$env:USERPROFILE\Documents\PowerShell\Modules\VulnerablePortsRule.psm1" -Value "$(cat VulnerablePortsRule.psm1)"
 
       - name: Run PSScriptAnalyzer
+        shell: pwsh
         run: |
           # Run PSScriptAnalyzer on all .ps1 files with custom rules
           Import-Module PSScriptAnalyzer
