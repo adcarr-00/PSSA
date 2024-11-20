@@ -30,48 +30,74 @@ firewall rules.
 #>
 
 function Measure-VulnerablePortsRule {
+{
     [CmdletBinding()]
     [OutputType([Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic.DiagnosticRecord[]])]
-    param (
+    Param
+    (
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [System.Management.Automation.Language.ScriptBlockAst]$ScriptBlockAst
+        [System.Management.Automation.Language.ScriptBlockAst]
+        $ScriptBlockAst
     )
 
-    process {
+    Process
+    {
         $results = @()
 
-        # List of vulnerable ports (e.g., Telnet, SMB, RDP)
-        $vulnerablePorts = @(23, 139, 445, 3389)
+        try
+        {
+            # Define predicates to find ASTs.
+            # Predicate for finding invocation of a command, specifically checking for 'New-NetFirewallRule' or 'Set-NetFirewallRule'
+            [ScriptBlock]$predicate = {
+                param ([System.Management.Automation.Language.Ast]$Ast)
+                $returnValue = $false
 
-        # Define predicates to find cmdlets (New-NetFirewallRule, Set-NetFirewallRule)
-        [ScriptBlock]$predicate1 = {
-            param ($Ast)
-            return ($Ast -is [System.Management.Automation.Language.InvocationExpressionAst] -and $Ast.Expression.ToString() -match 'New-NetFirewallRule|Set-NetFirewallRule')
-        }
-
-        # Finds ASTs that match the predicate
-        $cmdletInvocations = $ScriptBlockAst.FindAll($predicate1, $true)
-
-        # Check for vulnerable ports in the cmdlet arguments
-        foreach ($invocation in $cmdletInvocations) {
-            # Check the arguments for port numbers
-            foreach ($port in $vulnerablePorts) {
-                if ($invocation.ToString() -match "\b$port\b") {
-                    $result = [Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic.DiagnosticRecord]@{
-                        'Message' = "Vulnerable port $port is being opened by firewall rule."
-                        'RuleName' = 'VulnerablePortsRule'
-                        'Severity' = 'Warning'
-                        'Extent' = $invocation.Extent
+                # Check if it's a CommandAst (this represents an invoked command)
+                if ($Ast -is [System.Management.Automation.Language.CommandAst]) {
+                    $commandAst = $Ast
+                    if ($commandAst.GetCommandName() -in @('New-NetFirewallRule', 'Set-NetFirewallRule')) {
+                        $returnValue = $true
                     }
-                    $results += $result
+                }
+
+                return $returnValue
+            }
+
+            # Finds all CommandAst nodes
+            [System.Management.Automation.Language.Ast[]]$commandAst = $ScriptBlockAst.FindAll($predicate, $true)
+
+            if ($commandAst.Count -gt 0) {
+                # For each found command, we will check for vulnerable ports
+                foreach ($cmd in $commandAst) {
+                    # Extract the arguments for the command to check if any vulnerable ports are being used
+                    if ($cmd -is [System.Management.Automation.Language.CommandAst]) {
+                        $commandArgs = $cmd.CommandElements
+
+                        # Check if any arguments contain a vulnerable port (example: 23, 139, 445, 3389)
+                        $vulnerablePorts = @(23, 139, 445, 3389)
+                        foreach ($arg in $commandArgs) {
+                            foreach ($port in $vulnerablePorts) {
+                                if ($arg.Extent.ToString() -match "\b$port\b") {
+                                    $results += [Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic.DiagnosticRecord]@{
+                                        'Message' = "Vulnerable port $port is being opened or configured in $($cmd.GetCommandName())"
+                                        'Extent' = $cmd.Extent
+                                        'RuleName' = 'VulnerablePortDetection'
+                                        'Severity' = 'Warning'
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
-        }
 
-        return $results
+            return $results
+        }
+        catch {
+            $PSCmdlet.ThrowTerminatingError($PSItem)
+        }
     }
 }
-
 # Export the function so it can be used by PSScriptAnalyzer
 Export-ModuleMember -Function Measure-VulnerablePortsRule
