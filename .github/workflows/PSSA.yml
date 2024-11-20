@@ -29,24 +29,35 @@ jobs:
       - name: Run PSScriptAnalyzer
         shell: pwsh
         run: |
-          # Run PSScriptAnalyzer on all .ps1 files with custom rules
+          # Import the required modules
           Import-Module PSScriptAnalyzer
-          # Load the custom rule and check if it's available
+          Write-Host "PSScriptAnalyzer Module Loaded"
+      
+          # Path to the custom rule module
           $customRulePath = "$env:USERPROFILE\Documents\PowerShell\Modules\VulnerablePortsRule.psm1"
+          
+          # Ensure the custom rule module is available
+          if (Test-Path $customRulePath) {
+            Write-Host "Custom Rule Module Loaded: $customRulePath"
+          } else {
+            Write-Error "Custom Rule module not found at $customRulePath"
+          }
+      
+          # Import the custom rule module
           Import-Module $customRulePath
-          Write-Host "Custom Rule Module Loaded: $customRulePath"
-
+      
           # Analyze all .ps1 files recursively
           Get-ChildItem -Path . -Recurse -Filter *.ps1 | ForEach-Object {
             Write-Host "Analysing $($_.FullName)"
             try {
               # Run the script analyzer with the custom rule and capture the output
-              $analysisResult = Invoke-ScriptAnalyzer -Path $_.FullName
+              $analysisResult = Invoke-ScriptAnalyzer -Path $_.FullName -CustomRule $customRulePath
               $analysisResult | Out-File -FilePath psscriptanalyzer-results.txt -Append
             } catch {
               Write-Error "Error analyzing $($_.FullName): $_"
             }
           }
+
         
 
       - name: Upload results as artifact
