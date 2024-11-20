@@ -33,26 +33,6 @@ jobs:
           Import-Module PSScriptAnalyzer
           Write-Host "PSScriptAnalyzer Module Loaded"
       
-          # Path to the settings file
-          $settingsFile = "$env:GITHUB_WORKSPACE\psscriptanalyzer-settings.psd1"
-      
-          # Ensure the settings file exists
-          if (Test-Path $settingsFile) {
-            Write-Host "Settings file loaded from: $settingsFile"
-          } else {
-            Write-Error "Settings file not found at $settingsFile"
-          }
-      
           # Run PSScriptAnalyzer with the custom rule from the settings file
-          Invoke-ScriptAnalyzer -Path . -Settings $settingsFile | Out-File -FilePath psscriptanalyzer-results.txt
-      
-          # Optionally, print the results to the console
-          Get-Content psscriptanalyzer-results.txt
-        
-
-      - name: Upload results as artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: psscriptanalyzer-results
-          path: psscriptanalyzer-results.txt
+          Invoke-ScriptAnalyzer -Path . -CustomizedRulePath VulnerablePortsRule.psm1 -IncludeDefaultRules true
     
