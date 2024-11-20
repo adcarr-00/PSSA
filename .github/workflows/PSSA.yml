@@ -1,34 +1,46 @@
-name: PSScriptAnalyzer Scan
+name: PowerShell Script Analysis
 
-on: 
+on:
+  pull_request:
+    paths:
+      - '**/*.ps1'  # Only trigger on PowerShell script changes
   push:
     branches:
       - main
-  pull_request:
+    paths:
+      - '**/*.ps1'  # Only trigger on PowerShell script changes
 
 jobs:
-  scan:
-    runs-on: ubuntu-latest
+  psscriptanalyzer:
+    runs-on: windows-latest  # Use a Windows runner to execute PowerShell
 
     steps:
-    
-    #checkout code
-    - name: Checkout Code
-      uses: actions/checkout@v3
-
-    - name: Install PSSA
-      shell: pwsh
-      run: |
-        Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser
-        Import-Module PSScriptAnalyzer
-
-    - name: Run PSSA
-      shell: pwsh
-      run: |
-        Get-ChildItem -Path . -Recurse -Filter *.ps1 | ForEach-Object {
-          Write-Host "Analysing $($_.FullName)"
-          Invoke-ScriptAnalyzer -Path $_.FullName -Recurse -Severity Error,Warning
-        }
-    
+      - name: Checkout code
+        uses: actions/checkout@v3
         
+      - name: Set up PowerShell
+        uses: actions/setup-powershell@v2
+
+      - name: Install PSScriptAnalyzer
+        run: |
+          Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser
+
+      - name: Copy Custom Rule for Vulnerable Ports
+        run: |
+          # Copy the custom rule from the root of the repository
+          New-Item -Path "$env:USERPROFILE\Documents\PowerShell\Modules\VulnerablePortsRule.psm1" -ItemType File -Force
+          Set-Content -Path "$env:USERPROFILE\Documents\PowerShell\Modules\VulnerablePortsRule.psm1" -Value "$(cat VulnerablePortsRule.psm1)"
+
+      - name: Run PSScriptAnalyzer
+        run: |
+          # Run PSScriptAnalyzer on all .ps1 files with custom rules
+          Import-Module PSScriptAnalyzer
+          Import-Module "$env:USERPROFILE\Documents\PowerShell\Modules\VulnerablePortsRule.psm1"
+          Invoke-ScriptAnalyzer -Path . -CustomRulePath "$env:USERPROFILE\Documents\PowerShell\Modules\VulnerablePortsRule.psm1" | Out-File -FilePath psscriptanalyzer-results.txt
+
+      - name: Upload results as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: psscriptanalyzer-results
+          path: psscriptanalyzer-results.txt
     
