@@ -12,24 +12,16 @@ jobs:
   
 
     steps:
+
+      - name: Checkout repository with PowerShell scripts
+        uses: actions/checkout@v3
+        
       - name: Checkout PSSA security settings
         uses: actions/checkout@v3
         with:
           repository: adcarr-00/PSSA-Security-Settings
           token: ${{ secrets.GH_PAT }}
           path: settings-repo
-
-      - name: List directory contents
-        shell: pwsh
-        run: |
-          echo "Listing files in the current directory"
-          dir
-          echo "Listing files in settings-repo"
-          dir settings-repo
-
-      # Step 3: Checkout repository with PowerShell scripts
-      - name: Checkout repository with PowerShell scripts
-        uses: actions/checkout@v3
 
       - name: List directory contents
         shell: pwsh
