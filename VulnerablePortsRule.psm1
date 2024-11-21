@@ -57,24 +57,17 @@ function Measure-VulnerablePortsRule {
                     [System.Management.Automation.Language.CommandAst]$comAst = $Ast
 
                     # Check if the cmdlet is New-NetFirewallRule
-                    if ($comAst.CommandElements[0].ToString() -eq "New-NetFirewallRule"){
+                    if ($comAst.CommandElements[0].ToString() -match "New-NetFirewallRule|Set-NetFirewallRule"){
                         # Loop through the CommandElementAst objects (parameters and arguments)
                         foreach ($elementAst in $comAst.CommandElements) {
-                            if ($elementAst -is [System.Management.Automation.Language.CommandElementAst]) {
                             # Check for the parameters that involve ports (LocalPort or RemotePort)
-                                if ($elementAst.CommandElement.ToString() -match "LocalPort|RemotePort") {
-                                    # The next element in the CommandElements array is the argument for the parameter
-                                    $paramAst = $comAst.CommandElements[$comAst.CommandElements.IndexOf($elementAst) + 1]
-                                    if ($paramAst -is [System.Management.Automation.Language.CommandElementAst]) {
-                                        # Extract the argument value (which should be the port number)
-                                        $portValue = $paramAst.Argument.ToString()
-
-                                        # Check if the port is in the list of vulnerable ports
-                                        foreach ($port in $vulnerablePorts) {
-                                            if ($portValue -eq $port.ToString()) {
-                                                $returnValue = $true
-                                            }
-                                        }
+                            if ($elementAst -match "-LocalPort|-RemotePort") {
+                                # The next element in the CommandElements array is the argument for the parameter
+                                $portAst = $comAst.CommandElements[$comAst.CommandElements.IndexOf($elementAst) + 1]
+                                # Check if the port is in the list of vulnerable ports
+                                foreach ($port in $vulnerablePorts) {
+                                    if ($portAst -eq $port.ToString()) {
+                                        $returnValue = $true
                                     }
                                 }
                             }
