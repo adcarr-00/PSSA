@@ -42,7 +42,7 @@ function Measure-VulnerablePortsRule {
     )
 
     process {
-        $result = @()
+        $results = @()
         try
         {
             [ScriptBlock]$Predicate = {
