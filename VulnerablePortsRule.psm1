@@ -45,15 +45,40 @@ function Measure-VulnerablePortsRule {
         $results = @()
         try
         {
+            # Define the known vulnerable ports
+            $vulnerablePorts = @(23, 139, 445, 3389)
+
+            # Predicate to detect `New-NetFirewallRule` cmdlet and check for vulnerable ports
             [ScriptBlock]$Predicate = {
                 Param ([System.Management.Automation.Language.Ast]$Ast)
                 [bool]$returnValue = $false
                 if ($Ast -is [System.Management.Automation.Language.CommandAst])
                 {
                     [System.Management.Automation.Language.CommandAst]$comAst = $Ast
-                    echo $comAst.CommandElements
-                    if ($comAst.CommandElements -eq "New-NetFirewallRule"){
-                        $returnValue= $true
+
+                    # Check if the cmdlet is New-NetFirewallRule
+                    if ($comAst.CommandElements[0].ToString() -eq "New-NetFirewallRule"){
+                        # Loop through the CommandElementAst objects (parameters and arguments)
+                        foreach ($elementAst in $comAst.CommandElements) {
+                            if ($elementAst -is [System.Management.Automation.Language.CommandElementAst]) {
+                            # Check for the parameters that involve ports (LocalPort or RemotePort)
+                                if ($elementAst.CommandElement.ToString() -match "LocalPort|RemotePort") {
+                                    # The next element in the CommandElements array is the argument for the parameter
+                                    $paramAst = $comAst.CommandElements[$comAst.CommandElements.IndexOf($elementAst) + 1]
+                                    if ($paramAst -is [System.Management.Automation.Language.CommandElementAst]) {
+                                        # Extract the argument value (which should be the port number)
+                                        $portValue = $paramAst.Argument.ToString()
+
+                                        # Check if the port is in the list of vulnerable ports
+                                        foreach ($port in $vulnerablePorts) {
+                                            if ($portValue -eq $port.ToString()) {
+                                                $returnValue = $true
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
                 return $returnValue
