@@ -25,6 +25,7 @@ jobs:
       - name: Install PSScriptAnalyzer
         shell: pwsh
         run: |
+          dir
           Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser
 
       #- name: Copy Custom Rule for Vulnerable Ports
@@ -42,6 +43,6 @@ jobs:
           Write-Host "PSScriptAnalyzer Module Loaded"
       
           # Run PSScriptAnalyzer with the custom rule from the settings file
-          Invoke-ScriptAnalyzer -Path . -Recurse -Settings settings-repo\PSScriptAnalyzerSettings.psd1 
+          Invoke-ScriptAnalyzer -Path . -Recurse -Settings '.\settings-repo\PSScriptAnalyzerSettings.psd1' 
           
     
