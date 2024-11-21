@@ -46,7 +46,7 @@ function Measure-VulnerablePortsRule {
         try
         {
             # Define the known vulnerable ports
-            $vulnerablePorts = @(23, 139, 445, 3389)
+            [string[]]$vulnerablePorts = @(23, 139, 445, 3389)
 
             # Predicate to detect `New-NetFirewallRule` cmdlet and check for vulnerable ports
             [ScriptBlock]$Predicate = {
@@ -63,10 +63,10 @@ function Measure-VulnerablePortsRule {
                             # Check for the parameters that involve ports (LocalPort or RemotePort)
                             if ($elementAst -match "-LocalPort|-RemotePort") {
                                 # The next element in the CommandElements array is the argument for the parameter
-                                $portAst = $comAst.CommandElements[$comAst.CommandElements.IndexOf($elementAst) + 1]
+                                $portAst = $comAst.CommandElements[$comAst.CommandElements.IndexOf($elementAst) + 1].ToString()
                                 # Check if the port is in the list of vulnerable ports
-                                foreach ($port in $vulnerablePorts) {
-                                    if ($portAst -eq $port.ToString()) {
+                                foreach ($vulnPort in $vulnerablePorts) {
+                                    if ($portAst -match $vulnPort) {
                                         $returnValue = $true
                                     }
                                 }
