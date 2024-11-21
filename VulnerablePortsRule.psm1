@@ -50,10 +50,20 @@ function Measure-VulnerablePortsRule {
         # Define a predicate to find cmdlets that may open ports
         [ScriptBlock]$predicate = {
             param ([System.Management.Automation.Language.Ast]$Ast)
+            
+            # Debugging the predicate itself
+            Write-Host "Checking AST: $($Ast.GetType().Name)"
+            
             if ($Ast -is [System.Management.Automation.Language.CommandAst]) {
                 $cmdlet = $Ast.Command.ToString()
+                
+                # Debugging: print the cmdlet found
+                Write-Host "Found cmdlet: $cmdlet"
+
+                # Check if the command is one of the vulnerable firewall cmdlets
                 return $cmdlet -match "New-NetFirewallRule|Set-NetFirewallRule"
             }
+
             return $false
         }
 
@@ -118,13 +128,6 @@ function Measure-VulnerablePortsRule {
         return $results
     }
 }
-
-# Export the function so it can be used by PSScriptAnalyzer
-Export-ModuleMember -Function Measure-VulnerablePortsRule
-
-# Export the function so it can be used by PSScriptAnalyzer
-Export-ModuleMember -Function Measure-VulnerablePortsRule
-
 
 # Export the function so it can be used by PSScriptAnalyzer
 Export-ModuleMember -Function Measure-VulnerablePortsRule
