@@ -30,8 +30,8 @@ jobs:
         shell: pwsh
         run: |
           # Copy the custom rule from the root of the repository
-          New-Item -Path "$env:USERPROFILE\Documents\PowerShell\Modules\VulnerablePortsRule.psm1" -ItemType File -Force
-          Set-Content -Path "$env:USERPROFILE\Documents\PowerShell\Modules\VulnerablePortsRule.psm1" -Value "$(cat VulnerablePortsRule.psm1)"
+          New-Item -Path "$env:USERPROFILE\Documents\PowerShell\Modules\CommunityAnalyzerRules.psm1" -ItemType File -Force
+          Set-Content -Path "$env:USERPROFILE\Documents\PowerShell\Modules\CommunityAnalyzerRules.psm1" -Value "$(cat VulnerablePortsRule.psm1)"
 
       - name: Run PSScriptAnalyzer
         shell: pwsh
@@ -41,5 +41,5 @@ jobs:
           Write-Host "PSScriptAnalyzer Module Loaded"
       
           # Run PSScriptAnalyzer with the custom rule from the settings file
-          Invoke-ScriptAnalyzer -Path . -CustomizedRulePath VulnerablePortsRule.psm1
+          Invoke-ScriptAnalyzer -Path . -CustomizedRulePath CommunityAnalyzerRules.psm1
     
