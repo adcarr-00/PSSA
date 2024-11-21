@@ -42,92 +42,40 @@ function Measure-VulnerablePortsRule {
     )
 
     process {
-        $results = @()
-
-        # Define known vulnerable ports
-        $vulnerablePorts = @(23, 139, 445, 3389)
-
-        # Define a predicate to find cmdlets that may open ports
-        [ScriptBlock]$predicate = {
-            param ([System.Management.Automation.Language.Ast]$Ast)
-            
-            # Debugging the predicate itself
-            Write-Host "Checking AST: $($Ast.GetType().Name)"
-            
-            if ($Ast -is [System.Management.Automation.Language.CommandAst]) {
-                $cmdlet = $Ast.Command.ToString()
-                
-                # Debugging: print the cmdlet found
-                Write-Host "Found cmdlet: $cmdlet"
-
-                # Check if the command is one of the vulnerable firewall cmdlets
-                return $cmdlet -match "New-NetFirewallRule|Set-NetFirewallRule"
-            }
-
-            return $false
-        }
-
-        # Find the ASTs that match the predicate (cmdlets opening ports)
-        [System.Management.Automation.Language.Ast[]]$firewallCmdletAst = $ScriptBlockAst.FindAll($predicate, $true)
-
-        # Debugging output for ASTs found
-        Write-Host "Found $($firewallCmdletAst.Count) cmdlet(s) that might open ports"
-
-        if ($firewallCmdletAst.Count -gt 0) {
-            # For each found command, we will check for vulnerable ports
-            foreach ($cmd in $firewallCmdletAst) {
-                # Ensure $cmd is a valid CommandAst
-                if ($cmd -is [System.Management.Automation.Language.CommandAst]) {
-                    # Debugging: print the command being processed
-                    Write-Host "Processing CommandAst: $($cmd.Command)"
-
-                    # Ensure CommandElements is not null
-                    $commandArgs = $cmd.CommandElements
-
-                    # Debugging: print the command arguments
-                    if ($commandArgs -eq $null) {
-                        Write-Host "Command elements are null"
-                    } else {
-                        Write-Host "Command elements found: $($commandArgs.Count)"
+        $result = @()
+        try
+        {
+            [ScriptBlock]$Predicate = {
+                Param ([System.Management.Automation.Language.Ast]$Ast)
+                [bool]$returnValue = $false
+                if ($Ast -is [System.Management.Automation.Language.CommandAst])
+                {
+                    [System.Management.Automation.Language.CommandAst]$comAst = $Ast
+                    echo $comAst.CommandElements
+                    if ($comAst.CommandElements -eq "New-NetFirewallRule"){
+                        $returnValue= $true
                     }
-
-                    if ($commandArgs -ne $null) {
-                        # Check if any arguments contain a vulnerable port (example: 23, 139, 445, 3389)
-                        foreach ($arg in $commandArgs) {
-                            # Debugging: print the argument and check for $arg.Extent
-                            Write-Host "Processing argument: $($arg.ToString())"
-                            
-                            if ($arg.Extent -eq $null) {
-                                Write-Host "Argument Extent is null for: $($arg.ToString())"
-                            } else {
-                                Write-Host "Argument Extent: $($arg.Extent)"
-                            }
-
-                            foreach ($port in $vulnerablePorts) {
-                                if ($arg.Extent -ne $null -and $arg.Extent.ToString() -match "\b$port\b") {
-                                    Write-Host "Vulnerable port $port detected in argument $($arg.ToString())"
-
-                                    $results += [Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic.DiagnosticRecord]@{
-                                        'Message' = "Vulnerable port $port is being opened or configured in $($cmd.GetCommandName())"
-                                        'Extent' = $cmd.Extent
-                                        'RuleName' = 'VulnerablePortDetection'
-                                        'Severity' = 'Warning'
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    Write-Host "Skipping non-CommandAst: $($cmd)"
                 }
+                return $returnValue
             }
-        } else {
-            Write-Host "No matching cmdlets found in the script."
+            [System.Management.Automation.Language.Ast[]]$Violations = $ScriptBlockAst.FindAll($Predicate,$True)
+            Foreach ($Violation in $Violations) {
+                    $result = [Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic.DiagnosticRecord]@{
+                        'Message' = "This is a firewall rule"
+                        'Extent' = $Violation.Extent
+                        'RuleName' = $PSCmdlet.MyInvocation.InvocationName
+                        'Severity' = 'Information'
+                    }       
+                    $results += $result
+            }
+            return $results
         }
-
-        return $results
+        catch
+        {
+            $PSCmdlet.ThrowTerminatingError($PSItem)
+        }
     }
 }
 
 # Export the function so it can be used by PSScriptAnalyzer
-Export-ModuleMember -Function Measure-VulnerablePortsRule
+Export-ModuleMember -Function Measure-*
