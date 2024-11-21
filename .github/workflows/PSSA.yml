@@ -18,15 +18,10 @@ jobs:
           repository: adcarr-00/PSSA-Security-Settings
           token: ${{ secrets.GH_PAT }}
           path: settings-repo
-          
-      - name: Checkout code
-        uses: actions/checkout@v3
 
       - name: Install PSScriptAnalyzer
         shell: pwsh
         run: |
-          cd .github\workflows
-          dir
           Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser
 
       #- name: Copy Custom Rule for Vulnerable Ports
