@@ -50,7 +50,7 @@ function Measure-VulnerablePortsRule {
         # Define a predicate to find cmdlets that may open ports
         [ScriptBlock]$predicate = {
             param ([System.Management.Automation.Language.Ast]$Ast)
-            if ($Ast -is [System.Management.Automation.Language.InvocationExpressionAst]) {
+            if ($Ast -is [System.Management.Automation.Language.CommandAst]) {
                 $cmdlet = $Ast.Command.ToString()
                 return $cmdlet -match "New-NetFirewallRule|Set-NetFirewallRule"
             }
@@ -60,28 +60,30 @@ function Measure-VulnerablePortsRule {
         # Find the ASTs that match the predicate (cmdlets opening ports)
         [System.Management.Automation.Language.Ast[]]$firewallCmdletAst = $ScriptBlockAst.FindAll($predicate, $true)
 
-        # Now, check if any vulnerable port is mentioned in the script
-        foreach ($port in $vulnerablePorts) {
-            [ScriptBlock]$portPredicate = {
-                param ([System.Management.Automation.Language.Ast]$Ast)
-                if ($Ast -is [System.Management.Automation.Language.LiteralExpressionAst]) {
-                    return $Ast.Value -eq $port
-                }
-                return $false
-            }
+        if ($commandAst.Count -gt 0) {
+                # For each found command, we will check for vulnerable ports
+            foreach ($cmd in $commandAst) {
+                    # Extract the arguments for the command to check if any vulnerable ports are being used
+                if ($cmd -is [System.Management.Automation.Language.CommandAst]) {
+                        $commandArgs = $cmd.CommandElements
 
-            $portAst = $ScriptBlockAst.FindAll($portPredicate, $true)
-            if ($portAst.Count -gt 0 -and $firewallCmdletAst.Count -gt 0) {
-                $result = [Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic.DiagnosticRecord]@{
-                    'Message' = "Vulnerable port $port is being opened by firewall rule."
-                    'Extent' = $firewallCmdletAst[0].Extent
-                    'RuleName' = 'VulnerablePortsRule'
-                    'Severity' = 'Warning'
+                        # Check if any arguments contain a vulnerable port (example: 23, 139, 445, 3389)
+                    $vulnerablePorts = @(23, 139, 445, 3389)
+                    foreach ($arg in $commandArgs) {
+                        foreach ($port in $vulnerablePorts) {
+                            if ($arg.Extent.ToString() -match "\b$port\b") {
+                                $results += [Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic.DiagnosticRecord]@{
+                                    'Message' = "Vulnerable port $port is being opened or configured in $($cmd.GetCommandName())"
+                                    'Extent' = $cmd.Extent
+                                    'RuleName' = 'VulnerablePortDetection'
+                                    'Severity' = 'Warning'
+                                }
+                            }
+                        }
+                    }
                 }
-                $results += $result
             }
         }
-
         return $results
     }
 }
