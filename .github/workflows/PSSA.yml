@@ -41,5 +41,5 @@ jobs:
           Write-Host "PSScriptAnalyzer Module Loaded"
       
           # Run PSScriptAnalyzer with the custom rule from the settings file
-          Invoke-ScriptAnalyzer -Path . -CustomizedRulePath C:\Users\runneradmin\Documents\PowerShell\Modules\VulnerablePortsRule.psm1
+          Invoke-ScriptAnalyzer -Path . -CustomizedRulePath VulnerablePortsRule.psm1
     
