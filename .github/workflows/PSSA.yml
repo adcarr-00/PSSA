@@ -31,6 +31,14 @@ jobs:
       - name: Checkout repository with PowerShell scripts
         uses: actions/checkout@v3
 
+      - name: List directory contents
+        shell: pwsh
+        run: |
+          echo "Listing files in the current directory"
+          dir
+          echo "Listing files in settings-repo"
+          dir settings-repo
+
       - name: Install PSScriptAnalyzer
         shell: pwsh
         run: |
