@@ -5,9 +5,8 @@
 Detects the use of vulnerable ports (e.g., 23, 139, 445, 3389) in firewall rule configurations.
 
 .DESCRIPTION
-This custom rule for PSScriptAnalyzer analyzes PowerShell scripts to detect the use of specific cmdlets 
-(`New-NetFirewallRule` or `Set-NetFirewallRule`) that open vulnerable ports, such as Telnet (Port 23), 
-NetBIOS (Port 139), SMB (Port 445), and RDP (Port 3389). It flags these occurrences with a warning.
+Ports opened on Windows machines should not include known vulnerable ports. To fix the violation of this rule, 
+remove the vulnerable port. Seek guidance for secure networking configuration if further assistance is required.
 
 .EXAMPLE
 Measure-VulnerablePortsRule -ScriptBlockAst $ScriptBlockAst
@@ -52,6 +51,7 @@ function Measure-VulnerablePortsRule {
             [ScriptBlock]$Predicate = {
                 Param ([System.Management.Automation.Language.Ast]$Ast)
                 [bool]$returnValue = $false
+                
                 if ($Ast -is [System.Management.Automation.Language.CommandAst])
                 {
                     [System.Management.Automation.Language.CommandAst]$comAst = $Ast
@@ -79,10 +79,10 @@ function Measure-VulnerablePortsRule {
             [System.Management.Automation.Language.Ast[]]$Violations = $ScriptBlockAst.FindAll($Predicate,$True)
             Foreach ($Violation in $Violations) {
                     $result = [Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic.DiagnosticRecord]@{
-                        'Message' = "This is a firewall rule"
+                        'Message' = '$((Get-Help $MyInvocation.MyCommand.Name).Description.Text)'
                         'Extent' = $Violation.Extent
                         'RuleName' = $PSCmdlet.MyInvocation.InvocationName
-                        'Severity' = 'Information'
+                        'Severity' = 'Error'
                     }       
                     $results += $result
             }
