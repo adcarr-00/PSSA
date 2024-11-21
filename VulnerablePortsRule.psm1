@@ -79,7 +79,7 @@ function Measure-VulnerablePortsRule {
             [System.Management.Automation.Language.Ast[]]$Violations = $ScriptBlockAst.FindAll($Predicate,$True)
             Foreach ($Violation in $Violations) {
                     $result = [Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic.DiagnosticRecord]@{
-                        'Message' = Get-Help Measure-VulnerablePortsRule.Description.Text
+                        'Message' = (Get-Help Measure-VulnerablePortsRule).Description.Text -replace "`r`n", " "
                         'Extent' = $Violation.Extent
                         'RuleName' = $PSCmdlet.MyInvocation.InvocationName
                         'Severity' = 'Error'
