@@ -45,7 +45,7 @@ function Measure-VulnerablePortsRule {
         $results = @()
 
         # Define known vulnerable ports
-        $vulnerablePorts = @(20, 21, 23, 139, 445, 3389)
+        $vulnerablePorts = @(23, 139, 445, 3389)
 
         # Define a predicate to find cmdlets that may open ports
         [ScriptBlock]$predicate = {
@@ -63,19 +63,22 @@ function Measure-VulnerablePortsRule {
         if ($firewallCmdletAst.Count -gt 0) {
             # For each found command, we will check for vulnerable ports
             foreach ($cmd in $firewallCmdletAst) {
-                # Extract the arguments for the command to check if any vulnerable ports are being used
+                # Ensure $cmd is a valid CommandAst
                 if ($cmd -is [System.Management.Automation.Language.CommandAst]) {
+                    # Ensure CommandElements is not null
                     $commandArgs = $cmd.CommandElements
-
-                    # Check if any arguments contain a vulnerable port (example: 23, 139, 445, 3389)
-                    foreach ($arg in $commandArgs) {
-                        foreach ($port in $vulnerablePorts) {
-                            if ($arg.Extent.ToString() -match "\b$port\b") {
-                                $results += [Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic.DiagnosticRecord]@{
-                                    'Message' = "Vulnerable port $port is being opened or configured in $($cmd.GetCommandName())"
-                                    'Extent' = $cmd.Extent
-                                    'RuleName' = 'VulnerablePortDetection'
-                                    'Severity' = 'Warning'
+                    if ($commandArgs -ne $null) {
+                        # Check if any arguments contain a vulnerable port (example: 23, 139, 445, 3389)
+                        foreach ($arg in $commandArgs) {
+                            foreach ($port in $vulnerablePorts) {
+                                # Ensure we are working with a valid Extent object
+                                if ($arg.Extent -ne $null -and $arg.Extent.ToString() -match "\b$port\b") {
+                                    $results += [Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic.DiagnosticRecord]@{
+                                        'Message' = "Vulnerable port $port is being opened or configured in $($cmd.GetCommandName())"
+                                        'Extent' = $cmd.Extent
+                                        'RuleName' = 'VulnerablePortDetection'
+                                        'Severity' = 'Warning'
+                                    }
                                 }
                             }
                         }
@@ -86,6 +89,10 @@ function Measure-VulnerablePortsRule {
         return $results
     }
 }
+
+# Export the function so it can be used by PSScriptAnalyzer
+Export-ModuleMember -Function Measure-VulnerablePortsRule
+
 
 # Export the function so it can be used by PSScriptAnalyzer
 Export-ModuleMember -Function Measure-VulnerablePortsRule
