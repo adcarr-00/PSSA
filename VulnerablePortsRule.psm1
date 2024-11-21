@@ -45,7 +45,7 @@ function Measure-VulnerablePortsRule {
         try
         {
             # Define the known vulnerable ports
-            [string[]]$vulnerablePorts = @(23, 139, 445, 3389)
+            [string[]]$vulnerablePorts = @(23, 21, 20, 445)
 
             # Predicate to detect `New-NetFirewallRule` cmdlet and check for vulnerable ports
             [ScriptBlock]$Predicate = {
