@@ -45,7 +45,7 @@ function Measure-VulnerablePortsRule {
         try
         {
             # Define the known vulnerable ports
-            [string[]]$vulnerableServices = @(ftpsvc, TlntSvr, LanmanServer)
+            [string[]]$vulnerableServices = @("ftpsvc", "TlntSvr", "LanmanServer")
 
             # Predicate to detect `New-NetFirewallRule` cmdlet and check for vulnerable ports
             [ScriptBlock]$Predicate = {
