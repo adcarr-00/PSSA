@@ -15,21 +15,6 @@ jobs:
 
       - name: Checkout repository with PowerShell scripts
         uses: actions/checkout@v3
-        
-      - name: Checkout PSSA security settings
-        uses: actions/checkout@v3
-        with:
-          repository: adcarr-00/PSSA-Security-Settings
-          token: ${{ secrets.GH_PAT }}
-          path: settings-repo
-
-      - name: List directory contents
-        shell: pwsh
-        run: |
-          echo "Listing files in the current directory"
-          dir
-          echo "Listing files in settings-repo"
-          dir settings-repo
 
       - name: Install PSScriptAnalyzer
         shell: pwsh
@@ -44,6 +29,6 @@ jobs:
           Write-Host "PSScriptAnalyzer Module Loaded"
       
           # Run PSScriptAnalyzer with the custom rule from the settings file
-          Invoke-ScriptAnalyzer -Path . -Recurse -Settings '.\settings-repo\PSScriptAnalyzerSettings.psd1'
+          Invoke-ScriptAnalyzer -Path . -Recurse -Settings '.\security-settings\PSScriptAnalyzerSettings.psd1'
           
     
