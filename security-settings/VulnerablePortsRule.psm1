@@ -26,6 +26,14 @@ This rule is intended to help identify potential security risks associated with 
 firewall rules.
 #>
 
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '',
+    Scope='Function', Target='*')]
+Param()
+
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidTrailingWhitespace', '',
+    Scope='Function', Target='*')]
+Param()
+
 function Measure-VulnerablePortsRule {
     [CmdletBinding()]
     [OutputType([Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic.DiagnosticRecord[]])]
