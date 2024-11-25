@@ -2,7 +2,7 @@
 
 <#
 .SYNOPSIS
-Detects the use of services with known vulnerabilities (e.g., SMB, Telnet, FTP) in firewall rule configurations.
+Detects the use of services with known vulnerabilities (e.g. Telnet, FTP) in firewall rule configurations.
 
 .DESCRIPTION
 Ports opened on Windows machines should not introduce known vulnerable services. To fix the violation of this rule, 
@@ -42,7 +42,7 @@ function Measure-VulnerablePortsRule {
         try
         {
             # Define the known vulnerable ports
-            [string[]]$vulnerableServices = @('"ftpsvc"', '"TlntSvr"', '"LanmanServer"')
+            [string[]]$vulnerableServices = @('"ftpsvc"', '"TlntSvr"')
             # Predicate to detect `New-NetFirewallRule` cmdlet and check for vulnerable ports
             [ScriptBlock]$Predicate = {
                 Param ([System.Management.Automation.Language.Ast]$Ast)
