@@ -2,11 +2,11 @@
 
 <#
 .SYNOPSIS
-Detects the use of vulnerable ports (e.g., 23, 139, 445, 3389) in firewall rule configurations.
+Detects the use of services with known vulnerabilities (e.g., SMB, Telnet, FTP) in firewall rule configurations.
 
 .DESCRIPTION
-Ports opened on Windows machines should not include known vulnerable ports. To fix the violation of this rule, 
-remove the vulnerable port. Seek guidance for secure networking configuration if further assistance is required.
+Ports opened on Windows machines should not introduce known vulnerable services. To fix the violation of this rule, 
+remove the vulnerable service. Seek guidance for secure networking configuration if further assistance is required.
 
 .EXAMPLE
 Measure-VulnerablePortsRule -ScriptBlockAst $ScriptBlockAst
