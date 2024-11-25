@@ -28,8 +28,6 @@ firewall rules.
 
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '',
     Scope='Function', Target='*')]
-Param()
-
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidTrailingWhitespace', '',
     Scope='Function', Target='*')]
 Param()
