@@ -65,8 +65,8 @@ function Measure-VulnerablePortsRule {
                                 # The next element in the CommandElements array is the argument for the parameter
                                 $portAst = $comAst.CommandElements[$comAst.CommandElements.IndexOf($elementAst) + 1].ToString()
                                 # Check if the port is in the list of vulnerable ports
-                                foreach ($vulnPort in $vulnerablePorts) {
-                                    if ($portAst -match $vulnPort) {
+                                foreach ($vulnService in $vulnerableServices) {
+                                    if ($portAst.Trim() -eq $vulnService) {
                                         $returnValue = $true
                                     }
                                 }
