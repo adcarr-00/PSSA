@@ -26,8 +26,6 @@ This rule is intended to help identify potential security risks associated with 
 firewall rules.
 #>
 
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidTrailingWhitespace", "", Justification="Suppressing leading whitespace rule for synopsis")] 
-
 function Measure-VulnerablePortsRule {
     [CmdletBinding()]
     [OutputType([Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic.DiagnosticRecord[]])]
