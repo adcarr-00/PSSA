@@ -29,6 +29,12 @@ jobs:
           Write-Host "PSScriptAnalyzer Module Loaded"
       
           # Run PSScriptAnalyzer with the custom rule from the settings file
-          Invoke-ScriptAnalyzer -Path . -Recurse -Settings '.\security-settings\PSScriptAnalyzerSettings.psd1'
-          
+          $results = Invoke-ScriptAnalyzer -Path . -Recurse -Settings '.\security-settings\PSScriptAnalyzerSettings.psd1'
+          foreach ($result in $results) {
+            Write-Output "Violation: $($result.RuleName)"
+            Write-Output "Message: $($result.Message)"
+            Write-Output "Line: $($result.Line)"
+            Write-Output "Command: $($result.ScriptName):$($result.Line)"
+            Write-Output "Code: $($result.Script)"
+          }
     
